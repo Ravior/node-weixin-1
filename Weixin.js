@@ -1,4 +1,3 @@
-var fs = require('fs');
 var crypto = require('crypto');
 var xml2js = require('xml2js');
 var BufferHelper = require('bufferhelper');
