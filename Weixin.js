@@ -1,3 +1,4 @@
+var fs = require('fs');
 var crypto = require('crypto');
 var xml2js = require('xml2js');
 var BufferHelper = require('bufferhelper');
@@ -8,7 +9,7 @@ var Weixin = module.exports = {};
 
 //微信接口验证
 Weixin.validate = function(secret, req) {
-  if (!req.query.nonce || !req.query.timestamp || !req.query.signature)
+	if (!req.query.nonce || !req.query.timestamp || !req.query.signature)
 		return false;
 	var validator = [secret, req.query.timestamp, req.query.nonce].sort().join('');
 
@@ -31,7 +32,7 @@ Weixin.normalize = function(req, cb) {
 				return cb(err || new Error('no xml string'));
 			var xmlTmp = result.xml
 			var xml = {
-				MsgId: xmlTmp.MsgId[0],
+				MsgId: xmlTmp.MsgId ? xmlTmp.MsgId[0] : 0,
 				MsgType: xmlTmp.MsgType[0],
 				ToUserName: xmlTmp.ToUserName[0],
 				FromUserName: xmlTmp.FromUserName[0],
@@ -52,14 +53,14 @@ Weixin.normalize = function(req, cb) {
 	});
 };
 
-Weixin.responseText = function(xml, content) {
+Weixin.replyText = function(xml, content) {
 	return WeixinMessage.text(content)
 						.from(xml.ToUserName)
 						.to(xml.FromUserName)
 						.created(xml.CreateTime);
 };
 
-Weixin.responseMulti = function(xml, items) {
+Weixin.replyMulti = function(xml, items) {
 	return WeixinMessage.news(items)
 						.from(xml.ToUserName)
 						.to(xml.FromUserName)
