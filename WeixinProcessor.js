@@ -3,11 +3,10 @@ var EventEmitter = require('events').EventEmitter;
 var Weixin = require('./Weixin');
 
 var WeixinProcessor = module.exports = function(secret) {
-  EventEmitter.call(this);
+	EventEmitter.call(this);
 	this.secret = secret;
 };
-
-util.inherit(WeixinProcessor, EventEmitter);
+util.inherits(WeixinProcessor, EventEmitter);
 
 WeixinProcessor.prototype.validate = function(req, res) {
 	if(Weixin.validate(this.secret, req))
@@ -17,18 +16,21 @@ WeixinProcessor.prototype.validate = function(req, res) {
 };
 
 WeixinProcessor.prototype.process = function(req, res) {
-	if(!Weixin.validate(req))
+	if(!Weixin.validate(this.secret, req))
 		return res.send('error');
-
+	var _this = this;
 	Weixin.normalize(req, function(err, xml) {
 		if (err)
-			this.emit('error', err, xml, res);
+			_this.emit('error', err, xml, res);
 		else {
-			this.emit('message', xml);
+			_this.emit('message', xml);
+			if (xml.MsgType == 'location')
+				res.send(null);
+
 			if (xml.MsgType == 'event')
-				this.emit('event:' + xml.Event, xml, res);
+				_this.emit('event:' + xml.Event, xml, res);
 			else
-				this.emit(xml.MsgType, xml, res);
+				_this.emit(xml.MsgType, xml, res);
 		}
 	});
 };
